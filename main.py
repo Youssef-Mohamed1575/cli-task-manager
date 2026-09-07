@@ -1,12 +1,43 @@
+import os
 import storage
 import datetime
 import time
 import sys
 
 data = storage.load_data()
+def show_upcoming(day_diff=0):
+    sorted_tasks = sort_tasks_by_date()
+    today_iso = datetime.date.today() + datetime.timedelta(7*day_diff)
+    print(f"Upcoming tasks ({today_iso.strftime("%d %B %Y")} - {(today_iso + datetime.timedelta(7)).strftime("%d %B %Y")}) :")
+    for i in range(7):
+        view = (today_iso + datetime.timedelta(i))
+        view_iso = (today_iso + datetime.timedelta(i)).isoformat()
+        view_date = view.strftime("%d %B %Y").lstrip("0")
+        date_task =[task for task in sorted_tasks if task["date"]==view_iso]
+        if date_task:
+            print(f" {view_date} :")
+            local_id = 1
+            for task in date_task:
+                print(f" [{local_id}] {task['name']}")
+                i+=1
+
+def clear_terminal() :
+    os.system("cls" if os.name == "nt" else "clear")
+
+def sort_tasks_by_date():
+    sorted_tasks = list(data["tasks"])
+    n = len(sorted_tasks)
+    for i in range(n):
+        for j in range(n - i - 1):
+            if sorted_tasks[j]["date"] > sorted_tasks[j + 1]["date"]:
+                temp = sorted_tasks[j]
+                sorted_tasks[j] = sorted_tasks[j + 1]
+                sorted_tasks[j + 1] = temp
+    return sorted_tasks
+
 def next_handle(user_input):
     for day in range (1,8):
-        target_date= datetime.date.today() + datetime.timedelta(days=day)
+        target_date= datetime.date.today() + datetime.timedelta(day)
         if target_date.strftime("%A") == user_input.capitalize() :
             return target_date.isoformat()
 
@@ -24,7 +55,7 @@ def set_username():
     storage.save_data(data)
 
 def greet():
-    print(f"Hello {data['username']} !")
+    print(f"It's great to see you, {data['username']} ! \n")
 
 def welcome():
     print("Welcome to the CLI Task Manager")
@@ -38,19 +69,31 @@ def today_tasks():
             print(f"-{task['name']}")
     print("\n")
 
-def view_task():
-    pass
+def view_task(day_diff=0):
+    clear_terminal()
+    show_upcoming(day_diff)
+    print("="*30)
+    print("1-view later tasks \n2-Back to main menu")
+    view_menu = input("Command :")
+    if view_menu in ["later","next","1"]:
+        view_task(day_diff+1)
+    else :
+        clear_terminal()
+        return
+
 
 def new_task(supp_task_name=None):
+    clear_terminal()
     if not supp_task_name is None:
         task_affirm = input(f"do you wanna add \"{supp_task_name}\" as a task ?")
         if task_affirm in affirmative :
             task_name = supp_task_name
         else:
-            task_name = input("What is the task ?")
+            clear_terminal()
+            return
     else :
         task_name = input("What is the task ?")
-    task_date = input("Insert Date (YYYY-MM-DD) or simply type 'today',or a weekday (e.g., 'Friday' :")
+    task_date = input("Insert Date (YYYY-MM-DD) or simply type 'today',or a weekday (e.g., 'Friday') :")
     if task_date.strip().lower() == "today" :
         task_date = datetime.date.today().isoformat()
     elif next_handle(task_date):
@@ -63,10 +106,16 @@ def new_task(supp_task_name=None):
     }
     data["tasks"].append(new_task_data)
     storage.save_data(data)
+    print("Task saved !")
+    time.sleep(1)
+    clear_terminal()
     return
 
 def edit_task():
-    pass
+    sorted_tasks = sort_tasks_by_date()
+    show_upcoming()
+    print("Choose which task you want to edit:\ntype \"later\" for later tasks\ntype \"exit\" to exit ")
+    edit_menu = input("Command :")
 
 def del_task():
     pass
@@ -128,10 +177,10 @@ def initialize_app():
     welcome()
     if data["username"] == "":
         set_username()
-    greet()
     while True :
+        greet()
+        time.sleep(1)
         today_tasks()
-        max_id()
         show_menu()
         menu_choice = input("Command :").strip()
         execute_cmd(menu_choice)
