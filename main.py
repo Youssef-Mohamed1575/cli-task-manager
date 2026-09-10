@@ -30,9 +30,9 @@ def show_upcoming(mode,day_diff=0):
             print(f" {view_date} :")
             for task in date_task:
                 if mode =="view" :
-                    print(f"   -{task['name']}")
+                    print(f"   -{task['name']} {'(done)' if task['is_done'] else ''}")
                 else:
-                    print(f" [{local_id}] {task['name']}")
+                    print(f" [{local_id}] {task['name']} {'(done)' if task['is_done'] else ''}")
                     displayed_tasks.append(task)
                     local_id += 1
     print()
@@ -125,7 +125,7 @@ def today_tasks():
     print(f"Today's tasks ({today_date}) :")
     for task in data["tasks"] :
         if task["date"] == today_iso :
-            print(f"-{task['name']}")
+            print(f" -{task['name']} {'(done)' if task['is_done'] else ''}")
     print("\n")
 
 def view_task(day_diff=0):
@@ -292,6 +292,51 @@ def del_task(index):
         time.sleep(1)
         return
 
+
+def delete_previous_tasks():
+    clear_terminal()
+    today_iso = datetime.date.today().isoformat()
+    past_tasks = [task for task in data["tasks"] if task["date"] < today_iso]
+
+    if not past_tasks:
+        print("No previous tasks found to delete!")
+        time.sleep(1)
+        return
+
+    confirm = answer_yn(f"Delete all {len(past_tasks)} past task(s)")
+    if confirm:
+        # Keep only today's tasks and future tasks
+        data["tasks"] = [task for task in data["tasks"] if task["date"] >= today_iso]
+        storage.save_data(data)
+        clear_terminal()
+        print("All previous tasks deleted successfully!")
+        time.sleep(1)
+    else:
+        print("Deletion cancelled.")
+
+        time.sleep(1)
+
+def delete_finished_tasks():
+    clear_terminal()
+    today_iso = datetime.date.today().isoformat()
+    done_tasks = [task for task in data["tasks"] if task["is_done"] ]
+
+    if not done_tasks:
+        print("No completed tasks found to delete!")
+        time.sleep(1)
+        return
+
+    confirm = answer_yn(f"Delete all {len(done_tasks)} done task(s)")
+    if confirm:
+        data["tasks"] = [task for task in data["tasks"] if not task["is_done"]]
+        storage.save_data(data)
+        clear_terminal()
+        print("All completed tasks deleted successfully!")
+        time.sleep(1)
+    else:
+        print("Deletion cancelled.")
+        time.sleep(1)
+
 def settings():
     clear_terminal()
     separator(75,2)
@@ -303,7 +348,7 @@ def settings():
      SSSSS  EEEEEEE   TTT     TTT    IIIII  NN   NN   GGGGG   SSSSS 
     """)
     separator(75,2)
-    print("[1] Change username\n[e/exit] Return to main menu\n")
+    print("[1] Change username\n[2] Delete all previous tasks\n[3] Delete all completed tasks\n[e/exit] Return to main menu\n")
     settings_menu = input("Command :").strip().lower()
     if settings_menu in ["username","1","change","name"]:
         new_username = input("Your new username :").capitalize()
@@ -320,6 +365,10 @@ def settings():
             time.sleep(1)
             clear_terminal()
             return
+    elif settings_menu in ("2","pre","prev"):
+        delete_previous_tasks()
+    elif settings_menu in ("3","done"):
+        delete_finished_tasks()
     elif settings_menu in exit_cmd:
         clear_terminal()
         return
