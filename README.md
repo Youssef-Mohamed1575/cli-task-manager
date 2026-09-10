@@ -7,7 +7,7 @@ A terminal-based task manager written in Python. Add tasks with due dates, brows
 - Add tasks with a name and a due date
 - View tasks in a week-by-week calendar layout, with easy navigation to past/future weeks
 - Edit a task's name, date, or completion status
-- Delete tasks with a confirmation step
+- Delete individual tasks or bulk-delete past / completed tasks
 - Flexible date entry: exact dates, `today`, or a weekday name
 - Personalized greeting with a saved username
 - Every command has multiple accepted keywords (see below), so you don't have to remember exact wording
@@ -67,7 +67,7 @@ If `tasks.json` doesn't exist yet, it's created automatically on first run. If t
 
 ## Known limitations
 
-- Task data is never automatically pruned — old or completed tasks stay in `tasks.json` indefinitely unless manually deleted. On a long-lived list (thousands of tasks) this will noticeably slow down every screen, since the task list is fully re-sorted on each view.
+- Tasks stay in storage indefinitely unless manually pruned or cleared via Settings.
 - No recurring tasks, priorities, or tags.
 - Single-user, local file storage only — no sync or multi-device support.
 
@@ -112,10 +112,12 @@ Used once a specific task is selected for editing.
 
 ### Settings screen
 
-| Action | Keywords |
-|---|---|
-| Change username | `1`, `username`, `change`, `name` |
-| Return / cancel | `q`, `c`, `e`, `exit`, `cancel`, `back`, `return` |
+| Action            | Keywords                                          |
+|-------------------|---------------------------------------------------|
+| Change username   | `1`, `username`, `change`, `name`                 |
+| Delete past tasks | `2`, `pre`, `prev`                                |
+| Delete done tasks | `3`, `done`                                       |
+| Return / cancel   | `q`, `c`, `e`, `exit`, `cancel`, `back`, `return` |
 
 ### Yes / no prompts
 
